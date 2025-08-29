@@ -1,0 +1,47 @@
+import os
+import random
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
+
+# הבוט לוקח את הטוקן מהסביבה (Environment Variable)
+TOKEN = os.environ["BOT_TOKEN"]
+
+def get_display_name(user):
+    """מחזיר @username אם קיים, אחרת first_name"""
+    if user.username:
+        return f"@{user.username}"
+    return user.first_name
+
+async def love(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message.reply_to_message:
+        await update.message.reply_text(
+            "כדי לבדוק אהבה צריך לעשות /love בתגובה להודעה 😉"
+        )
+        return
+    
+    lover = get_display_name(update.message.from_user)
+    loved = get_display_name(update.message.reply_to_message.from_user)
+    
+    percent = random.randint(0, 100)
+
+    # מוסיף אימוג'ים לפי אחוזי אהבה
+    if percent < 30:
+        emoji = "💔"
+    elif percent < 70:
+        emoji = "💖"
+    else:
+        emoji = "💞"
+
+    await update.message.reply_text(
+        f"{emoji} מדד האהבה בין {lover} ל-{loved} הוא: {percent}%!"
+    )
+
+def main():
+    app = Application.builder().token(TOKEN).build()
+    app.add_handler(CommandHandler("love", love))
+
+    print("הבוט עובד... 💖")
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
